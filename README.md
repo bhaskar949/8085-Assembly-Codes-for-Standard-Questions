@@ -1,0 +1,1 @@
+8085 Assembly Language is a low-level programming language used to write instructions for the Intel 8085.The 8085 microprocessor instruction set consists of 74 distinct instructions (mnemonics) and 246 operational codes (opcodes) used to develop assembly language programs.
