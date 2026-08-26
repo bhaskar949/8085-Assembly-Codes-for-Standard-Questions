@@ -1,0 +1,625 @@
+8085 ASSEMBLY PROGRAMS – LAB EXAM COLLECTION
+
+## 1. ADD TWO 8-BIT NUMBERS
+Question:
+Add two 8-bit numbers stored at 8000H and 8001H. Store the result at 8002H. Ignore carry.
+
+```asm
+        LDA 8000H
+        MOV B, A
+        LDA 8001H
+        ADD B
+        STA 8002H
+        HLT
+```
+
+## 2. ADD TWO 16-BIT NUMBERS
+Question:
+First 16-bit number: low byte at 8000H, high byte at 8001H.
+Second 16-bit number: low byte at 8002H, high byte at 8003H.
+Store result at 8004H (low) and 8005H (high).
+
+```asm
+        LHLD 8000H
+        XCHG
+        LHLD 8002H
+        DAD D
+        SHLD 8004H
+        HLT
+```
+
+## 3. TRANSFER A BLOCK OF 10 BYTES
+Question:
+Copy 10 bytes from 9000H to 9100H.
+
+```asm
+        LXI H, 9000H
+        LXI D, 9100H
+        MVI C, 0AH
+
+LOOP:   MOV A, M
+        STAX D
+        INX H
+        INX D
+        DCR C
+        JNZ LOOP
+        HLT
+```
+
+## 4. FIND LARGEST NUMBER IN AN ARRAY
+Question:
+M[8000H] contains N. N numbers start from 8001H. Store largest at 8050H.
+
+```asm
+        LDA 8000H
+        MOV C, A
+        LXI H, 8001H
+
+        MOV A, M
+        INX H
+        DCR C
+
+NEXT:   CMP M
+        JNC SKIP
+        MOV A, M
+
+SKIP:   INX H
+        DCR C
+        JNZ NEXT
+
+        STA 8050H
+        HLT
+```
+
+## 5. FIND SMALLEST NUMBER IN AN ARRAY
+Question:
+M[8000H] contains N. N numbers start from 8001H. Store smallest at 8051H.
+
+```asm
+        LDA 8000H
+        MOV C, A
+        LXI H, 8001H
+
+        MOV A, M
+        INX H
+        DCR C
+
+NEXT:   CMP M
+        JC SKIP
+        MOV A, M
+
+SKIP:   INX H
+        DCR C
+        JNZ NEXT
+
+        STA 8051H
+        HLT
+```
+
+## 6. COUNT EVEN AND ODD NUMBERS
+Question:
+M[8000H] contains N. N numbers start from 8001H.
+Store even count at 8600H and odd count at 8601H.
+
+```asm
+        LDA 8000H
+        MOV C, A
+        LXI H, 8001H
+        MVI D, 00H
+        MVI E, 00H
+
+NEXT:   MOV A, M
+        ANI 01H
+        JZ EVEN
+
+        INR E
+        JMP CONT
+
+EVEN:   INR D
+
+CONT:   INX H
+        DCR C
+        JNZ NEXT
+
+        MOV A, D
+        STA 8600H
+        MOV A, E
+        STA 8601H
+        HLT
+```
+
+## 7. SUBTRACT TWO 8-BIT NUMBERS WITH BORROW
+Question:
+Compute M[7000H] - M[7001H].
+Store result at 7002H.
+Store 01H at 7003H if borrow occurs, otherwise 00H.
+
+```asm
+        LDA 7000H
+        MOV B, A
+        LDA 7001H
+        MOV C, A
+        MOV A, B
+        SUB C
+        STA 7002H
+
+        MVI A, 00H
+        JNC NOBORROW
+        MVI A, 01H
+
+NOBORROW:
+        STA 7003H
+        HLT
+```
+
+## 8. MULTIPLY TWO 8-BIT NUMBERS – FULL 16-BIT RESULT
+Question:
+M[8000H] = multiplicand.
+M[8001H] = multiplier.
+Store 16-bit product at 8002H (low) and 8003H (high).
+Example: FFH × 05H = 04FBH.
+
+```asm
+        LDA 8000H
+        MOV D, A
+
+        LDA 8001H
+        MOV C, A
+
+        MVI H, 00H
+        MVI L, 00H
+
+LOOP:   MOV A, L
+        ADD D
+        MOV L, A
+
+        JNC SKIP
+        INR H
+
+SKIP:   DCR C
+        JNZ LOOP
+
+        SHLD 8002H
+        HLT
+```
+
+## 9. REVERSE A BLOCK OF N BYTES
+Question:
+M[8000H] contains N. Source starts at 8001H.
+Store reversed data starting at 9000H.
+
+```asm
+        LDA 8000H
+        MOV C, A
+        LXI H, 8001H
+        LXI D, 9000H
+
+        MOV B, C
+        DCR B
+
+ADV:    INX H
+        DCR B
+        JNZ ADV
+
+LOOP:   MOV A, M
+        STAX D
+        DCX H
+        INX D
+        DCR C
+        JNZ LOOP
+        HLT
+```
+
+## 10. BINARY TO UNPACKED BCD
+Question:
+M[8500H] contains a binary number from 00H to 63H (0–99 decimal).
+Store tens digit at 8501H and units digit at 8502H.
+
+```asm
+        LDA 8500H
+        MVI B, 00H
+
+TENLOOP:
+        CPI 0AH
+        JC DONE_TENS
+        SUI 0AH
+        INR B
+        JMP TENLOOP
+
+DONE_TENS:
+        MOV C, A
+        MOV A, B
+        STA 8501H
+        MOV A, C
+        STA 8502H
+        HLT
+```
+
+## 11. SORT N NUMBERS IN ASCENDING ORDER
+Question:
+M[8000H] contains N. N elements start at 8001H.
+Sort in ascending order in place.
+
+```asm
+        LDA 8000H
+        MOV B, A
+        DCR B
+
+OUTER:  MOV C, B
+        LXI H, 8001H
+
+INNER:  MOV A, M
+        INX H
+        MOV E, M
+        CMP E
+        JC NOSWAP
+
+        MOV M, A
+        DCX H
+        MOV M, E
+        INX H
+
+NOSWAP: DCR C
+        JNZ INNER
+
+        DCR B
+        JNZ OUTER
+        HLT
+```
+
+## 12. FIBONACCI SERIES
+Question:
+M[8000H] contains N. Generate N Fibonacci terms and store from 8001H.
+
+```asm
+        LDA 8000H
+        MOV C, A
+
+        MVI A, 00H
+        STA 8001H
+        DCR C
+        JZ END
+
+        MVI A, 01H
+        STA 8002H
+        DCR C
+        JZ END
+
+        LXI H, 8001H
+
+NEXT:   MOV A, M
+        INX H
+        MOV B, M
+        INX H
+        ADD B
+        MOV M, A
+        DCR C
+        JNZ NEXT
+
+END:    HLT
+```
+
+## 13. CHECK WHETHER A NUMBER IS PRIME
+Question:
+Input at 8200H. Store 01H at 8201H if prime, otherwise 00H.
+
+```asm
+        LDA 8200H
+        MOV B, A
+
+        CPI 02H
+        JC NOTPRIME
+        CPI 02H
+        JZ PRIME
+
+        MVI C, 02H
+
+CHKDIV: MOV A, B
+        CMP C
+        JZ PRIME
+
+        MOV A, B
+
+MODLP:  SUB C
+        JC NEXTDIV
+        JNZ MODLP
+        JMP NOTPRIME
+
+NEXTDIV:
+        INR C
+        JMP CHKDIV
+
+PRIME:  MVI A, 01H
+        STA 8201H
+        HLT
+
+NOTPRIME:
+        MVI A, 00H
+        STA 8201H
+        HLT
+```
+
+## 14. ROTATE AN 8-BIT NUMBER
+Question:
+Input at 8600H. Perform RLC and store result at 8601H.
+
+```asm
+        LDA 8600H
+        RLC
+        STA 8601H
+        HLT
+```
+
+Other rotate instructions:
+RLC = rotate left
+RRC = rotate right
+RAL = rotate left through carry
+RAR = rotate right through carry
+
+## 15. COMPARE TWO STRINGS / BLOCKS
+Question:
+M[8000H] contains N.
+String 1 starts at 8001H.
+String 2 starts at 9001H.
+Store 00H at 8FFFH if equal, 01H if not equal.
+
+```asm
+        LDA 8000H
+        MOV C, A
+
+        LXI H, 8001H
+        LXI D, 9001H
+
+LOOP:   MOV A, M
+        MOV B, A
+        LDAX D
+        CMP B
+        JNZ NOTEQ
+
+        INX H
+        INX D
+        DCR C
+        JNZ LOOP
+
+        MVI A, 00H
+        STA 8FFFH
+        HLT
+
+NOTEQ:  MVI A, 01H
+        STA 8FFFH
+        HLT
+```
+
+## 16. MULTIPLICATION USING SHIFT-ADD
+Question:
+Multiply two 8-bit numbers using shift and add.
+M[8000H] = multiplicand.
+M[8001H] = multiplier.
+Store 16-bit result at 8002H (low), 8003H (high).
+
+```asm
+        LDA 8000H
+        MOV E, A
+        MVI D, 00H
+
+        LDA 8001H
+        MOV C, A
+
+        MVI H, 00H
+        MVI L, 00H
+
+        MVI B, 08H
+
+MUL_LOOP:
+        MOV A, C
+        ANI 01H
+        JZ SKIP_ADD
+
+        DAD D
+
+SKIP_ADD:
+        MOV A, E
+        RAL
+        MOV E, A
+
+        MOV A, D
+        RAL
+        MOV D, A
+
+        MOV A, C
+        RAR
+        MOV C, A
+
+        DCR B
+        JNZ MUL_LOOP
+
+        SHLD 8002H
+        HLT
+```
+
+## 17. DIVISION – 8-BIT DIVIDEND AND DIVISOR
+Question:
+M[8100H] = dividend.
+M[8101H] = divisor.
+Store quotient at 8102H and remainder at 8103H.
+
+```asm
+        LDA 8100H
+        MOV B, A
+
+        LDA 8101H
+        MOV C, A
+
+        MVI D, 00H
+
+DIV_LOOP:
+        MOV A, B
+        SUB C
+        JC DIV_DONE
+
+        MOV B, A
+        INR D
+        JMP DIV_LOOP
+
+DIV_DONE:
+        MOV A, D
+        STA 8102H
+
+        MOV A, B
+        STA 8103H
+
+        HLT
+```
+
+## 18. BCD ADDITION
+Question:
+Two packed BCD numbers are stored at 8200H and 8201H.
+Add them using DAA.
+Store BCD result at 8202H and decimal carry at 8203H.
+
+```asm
+        LDA 8200H
+        MOV B, A
+
+        LDA 8201H
+        ADD B
+        DAA
+
+        STA 8202H
+
+        MVI A, 00H
+        JNC NOCARRY_BCD
+        MVI A, 01H
+
+NOCARRY_BCD:
+        STA 8203H
+        HLT
+```
+
+## 19. ADD TWO 8-BIT NUMBERS AND SHOW CARRY
+Question:
+Add M[8100H] and M[8101H].
+Store sum at 8102H.
+Store carry as 00H or 01H at 8103H.
+
+```asm
+        LDA 8100H
+        MOV B, A
+
+        LDA 8101H
+        ADD B
+
+        STA 8102H
+
+        MVI A, 00H
+        JNC NOCARRY
+        MVI A, 01H
+
+NOCARRY:
+        STA 8103H
+        HLT
+```
+
+## 20. ADDITION OF AN ARRAY WITH 16-BIT RESULT
+Question:
+M[8000H] contains N.
+N array elements start at 8001H.
+Store 16-bit sum at 9000H (low) and 9001H (high).
+
+```asm
+        LDA 8000H
+        MOV C, A
+        LXI H, 8001H
+
+        MVI D, 00H
+        MVI E, 00H
+
+NEXT:   MOV A, E
+        ADD M
+        MOV E, A
+
+        JNC NO_CARRY
+        INR D
+
+NO_CARRY:
+        INX H
+        DCR C
+        JNZ NEXT
+
+        MOV A, E
+        STA 9000H
+        MOV A, D
+        STA 9001H
+
+        HLT
+```
+
+## 21. DELAY LOOP
+Question:
+Generate a software delay using a counter.
+
+```asm
+DELAY:  MVI B, 0FFH
+
+LOOP1:  DCR B
+        JNZ LOOP1
+        RET
+```
+
+## 22. LONGER DELAY USING NESTED LOOPS
+
+```asm
+        MVI B, 0FFH
+
+OUTER:  MVI C, 0FFH
+
+INNER:  DCR C
+        JNZ INNER
+
+        DCR B
+        JNZ OUTER
+        RET
+```
+
+## 23. ADDRESSING MODE EXAMPLES
+
+```asm
+        MVI A, 32H       ; Immediate
+        MOV A, B         ; Register
+        LDA 8000H        ; Direct
+        MOV A, M         ; Register indirect through HL
+        CMA              ; Implied
+```
+
+## 24. ROTATE EXAMPLES
+
+```asm
+        LDA 8600H
+        RLC
+        STA 8601H
+        HLT
+```
+
+RLC:
+A7 -> CY and A0
+
+RRC:
+A0 -> CY and A7
+
+RAL:
+A7 -> CY and old CY -> A0
+
+RAR:
+A0 -> CY and old CY -> A7
+
+## 25. CONDITIONAL JUMP EXAMPLES
+
+```asm
+        JPO 9000H        ; Jump if parity odd, P=0
+        JPE 9000H        ; Jump if parity even, P=1
+        JM  9000H        ; Jump if minus, S=1
+        JP  9000H        ; Jump if plus, S=0
+        JZ  9000H        ; Jump if zero, Z=1
+        JNZ 9000H        ; Jump if not zero, Z=0
+        JC  9000H        ; Jump if carry, CY=1
+        JNC 9000H        ; Jump if no carry, CY=0
